@@ -1,0 +1,42 @@
+debug func TestKZGSettings_CheckProofSingle(t *testing.T) {
+	//the para is the pointer to struct T
+	//struct T:struct-common;bool-isEnvSet;pointer to struct testcontext-context
+	fs := NewFFTSettings(4)
+debug func NewFFTSettings(maxScale uint8) *FFTSettings {
+  //the fuc NewFFTSettings(maxScale uint8),return a pointer to struct FFTSettings(attribute MaxWidth,RootOfUnity,ExpandedRootsOfUnity,ReverseRootsOfUnity)
+  width := uint64(1) << maxScale           //move left 4 bit，width：16
+  root := &bls.Scale2RootOfUnity[maxScale] //Scale2RootOfUnity is a slice of Fr
+	//type Fr [4]uint64,cap of Filament group:4
+	//root is pointer to the slice of Fr
+debug func expandRootOfUnity(rootOfUnity *bls.Fr) []bls.Fr{
+	rootz := make([]bls.Fr, 2) //the slice of Fr,cap:2
+	rootz[0] = bls.ONE         // some unused number in py code
+	//the type of ONE is Fr([4]uint64)
+	//put 0 into rootz[1]
+	rootz[1] = *rootOfUnity
+	//put the *para (is a Fr) into rootz[1]
+  for i := 1; !bls.EqualOne(&rootz[i]); { //EqualOne ...
+  //func EqualOne is doing compare with qr1 = &Fr{0x00000001fffffffe, 0x5884b7fa00034802, 0x998c4fefecbc4ff5, 0x1824b159acc5056f}
+		rootz = append(rootz, bls.Fr{})
+		this := &rootz[i]
+		i++
+		bls.MulModFr(&rootz[i], this, rootOfUnity) //the para rootOfUnity is the pointer to slice:Scale2RootOfUnity[init num:4]
+	    //func MulModFr(dst *Fr, a, b *Fr) {(*kbls.Fr)(dst).RedMul((*kbls.Fr)(a), (*kbls.Fr)(b))}
+        debug func RedMul(a, b *Fr) 
+          //func (e *Fr) RedMul(a, b *Fr) {	mulFR(e, a, b)}
+            //var mulFR func(c, a, b *Fr) = mulADXFR
+              //func mulADXFR(c, a, b *Fr)//go:noescape
+  return rootz
+  //the lenth of rootz:17;the rootz[0] is equal to rootz[16]
+  //rootz[0]=rootz[16]:type of Fr:
+  //Fr[0]8589934590
+  //Fr[1]6378425256633387010
+  //Fr[2]11064306276430008309
+  //Fr[3]1739710354780652911
+	}
+  
+debug 
+  ......
+  ......
+
+ }
