@@ -8,6 +8,10 @@ debug func NewFFTSettings(maxScale uint8) *FFTSettings {
   root := &bls.Scale2RootOfUnity[maxScale] //Scale2RootOfUnity is a slice of Fr
 	//type Fr [4]uint64,cap of Filament group:4
 	//root is pointer to the slice of Fr
+  rootz := expandRootOfUnity(&bls.Scale2RootOfUnity[maxScale])
+	// reverse roots of unity
+
+	
 debug func expandRootOfUnity(rootOfUnity *bls.Fr) []bls.Fr{
 	rootz := make([]bls.Fr, 2) //the slice of Fr,cap:2
 	rootz[0] = bls.ONE         // some unused number in py code
@@ -15,8 +19,8 @@ debug func expandRootOfUnity(rootOfUnity *bls.Fr) []bls.Fr{
 	//put 0 into rootz[1]
 	rootz[1] = *rootOfUnity
 	//put the *para (is a Fr) into rootz[1]
-  for i := 1; !bls.EqualOne(&rootz[i]); { //EqualOne ...
-  //func EqualOne is doing compare with qr1 = &Fr{0x00000001fffffffe, 0x5884b7fa00034802, 0x998c4fefecbc4ff5, 0x1824b159acc5056f}
+ 	 for i := 1; !bls.EqualOne(&rootz[i]); { //EqualOne ...
+  	//func EqualOne is doing compare with qr1 = &Fr{0x00000001fffffffe, 0x5884b7fa00034802, 0x998c4fefecbc4ff5, 0x1824b159acc5056f}
 		rootz = append(rootz, bls.Fr{})
 		this := &rootz[i]
 		i++
@@ -26,16 +30,61 @@ debug func expandRootOfUnity(rootOfUnity *bls.Fr) []bls.Fr{
           //func (e *Fr) RedMul(a, b *Fr) {	mulFR(e, a, b)}
             //var mulFR func(c, a, b *Fr) = mulADXFR
               //func mulADXFR(c, a, b *Fr)//go:noescape
-  return rootz
-  //the lenth of rootz:17;the rootz[0] is equal to rootz[16]
-  //rootz[0]=rootz[16]:type of Fr:
-  //Fr[0]8589934590
-  //Fr[1]6378425256633387010
-  //Fr[2]11064306276430008309
-  //Fr[3]1739710354780652911
+ 	 return rootz
+  	//the lenth of rootz:17;the rootz[0] is equal to rootz[16]
+ 	 //rootz[0]=rootz[16]:type of Fr:
+ 	 //Fr[0]8589934590
+  	//Fr[1]6378425256633387010
+  	//Fr[2]11064306276430008309
+  	//Fr[3]1739710354780652911
 	}
   
-debug 
+  rootzReverse := make([]bls.Fr, len(rootz), len(rootz))
+  copy(rootzReverse, rootz)//copy rootz to rootzReverse
+  for i, j := uint64(0), uint64(len(rootz)-1); i < j; i, j = i+1, j-1 {
+		rootzReverse[i], rootzReverse[j] = rootzReverse[j], rootzReverse[i]
+	}
+
+	return &FFTSettings{
+		MaxWidth:             width,//width := uint64(1) << maxScale  
+		RootOfUnity:          root,//root := &bls.Scale2RootOfUnity[maxScale]
+		ExpandedRootsOfUnity: rootz,
+		ReverseRootsOfUnity:  rootzReverse,
+	}
+  s1, s2 := GenerateTestingSetup("1927409816240961209460912649124", 16+1)
+	debug func GenerateTestingSetup("1927409816240961209460912649124", 16+1)
+		func GenerateTestingSetup(secret string, n uint64) ([]bls.G1Point, []bls.G2Point) {
+		//type G1Point kbls.PointG1
+		//type PointG1 [3]fe
+		//type fe [6]uint64
+		
+		
+		//type G2Point kbls.PointG2
+		//type PointG2 [3]fe2
+		//type fe2 [2]fe
+		
+		//type fe6 [3]fe2
+		//type fe12 [2]fe6
+		var s bls.Fr
+		bls.SetFr(&s, secret)
+		debug func SetFr
+		
+
+		var sPow bls.Fr
+		bls.CopyFr(&sPow, &bls.ONE)
+
+		s1Out := make([]bls.G1Point, n, n)
+		s2Out := make([]bls.G2Point, n, n)
+		for i := uint64(0); i < n; i++ {
+		bls.MulG1(&s1Out[i], &bls.GenG1, &sPow)
+		bls.MulG2(&s2Out[i], &bls.GenG2, &sPow)
+		var tmp bls.Fr
+		bls.CopyFr(&tmp, &sPow)
+		bls.MulModFr(&sPow, &tmp, &s)
+		}
+		return s1Out, s2Out
+		}
+		
   ......
   ......
 
